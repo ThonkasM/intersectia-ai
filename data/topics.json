@@ -1,0 +1,303 @@
+{
+  "topics": [
+    {
+      "slug": "iot",
+      "titulo": "¿Qué es IoT?",
+      "categoria": "generales",
+      "keywords": [
+        "iot",
+        "internet de las cosas",
+        "sensores",
+        "conectividad",
+        "edge",
+        "cloud",
+        "datos en tiempo real",
+        "nodo"
+      ],
+      "contextoResumen": "IoT (Internet de las Cosas) conecta objetos y sensores a internet para recopilar datos en tiempo real, procesarlos en el borde (edge) o en la nube (cloud) y tomar decisiones.",
+      "contextoGuia": "IoT, o Internet de las Cosas, conecta dispositivos físicos, sensores y objetos cotidianos a internet para que puedan recopilar, transmitir y procesar datos. En el proyecto IntersectIA, los vehículos y la infraestructura vial actúan como nodos IoT: cada uno reporta su posición y estado en tiempo real. El procesamiento puede ocurrir en el borde (edge), cerca de donde se generan los datos para reducir la latencia, o en la nube (cloud), donde hay más capacidad de cómputo. El valor de IoT radica en convertir datos de sensores en decisiones oportunas, como decidir qué vehículo debe cruzar primero una intersección sin semáforos.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es IoT?",
+          "respuesta": "IoT es la Internet de las Cosas: la conexión de sensores y dispositivos físicos a internet para recopilar y procesar datos en tiempo real."
+        },
+        {
+          "pregunta": "¿Qué significa IoT?",
+          "respuesta": "IoT significa Internet de las Cosas (Internet of Things)."
+        },
+        {
+          "pregunta": "¿Qué papel juegan los sensores en IoT?",
+          "respuesta": "Los sensores capturan datos del entorno, como posición, velocidad o proximidad, y los envían a un nodo central para su procesamiento."
+        },
+        {
+          "pregunta": "¿Qué diferencia hay entre edge y cloud en IoT?",
+          "respuesta": "El edge procesa datos cerca de su origen para reducir latencia, mientras que la nube ofrece más capacidad de cómputo pero con mayor latencia."
+        }
+      ]
+    },
+    {
+      "slug": "vehiculos-autonomos",
+      "titulo": "Vehículos autónomos",
+      "categoria": "generales",
+      "keywords": [
+        "vehiculos autonomos",
+        "vehiculo autonomo",
+        "niveles",
+        "sae",
+        "l0",
+        "l1",
+        "l2",
+        "l3",
+        "l4",
+        "l5",
+        "percepcion",
+        "decision",
+        "actuacion"
+      ],
+      "contextoResumen": "Un vehículo autónomo percibe su entorno con sensores, decide con algoritmos de IA y actúa sobre el volante y los frenos. La norma SAE define niveles de automatización de L0 a L5.",
+      "contextoGuia": "Un vehículo autónomo es aquel capaz de percibir su entorno mediante sensores, decidir qué acción tomar usando algoritmos (incluida la IA) y actuar físicamente sobre la dirección, el acelerador y los frenos. La norma SAE clasifica la automatización en niveles: L0 sin automatización, L1 asistencia (por ejemplo control crucero), L2 automatización parcial, L3 automatización condicional, L4 alta automatización y L5 automatización total sin intervención humana. En todos los niveles se repite el ciclo percibir, decidir y actuar. En el proyecto IntersectIA, el enfoque no está en conducir el vehículo sino en coordinar la decisión de cruce en una intersección, delegando esa decisión a un gestor central.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es un vehículo autónomo?",
+          "respuesta": "Es un vehículo que percibe su entorno con sensores, decide con algoritmos de IA y actúa sobre la dirección y los frenos sin necesidad de un conductor humano."
+        },
+        {
+          "pregunta": "¿Qué son los niveles SAE de autonomía?",
+          "respuesta": "La norma SAE clasifica la automatización en niveles de L0 (sin automatización) a L5 (automatización total, sin intervención humana)."
+        },
+        {
+          "pregunta": "¿Qué ciclo sigue un vehículo autónomo?",
+          "respuesta": "Un vehículo autónomo repite el ciclo de percibir su entorno, decidir la acción y actuar sobre los controles del vehículo."
+        },
+        {
+          "pregunta": "¿Qué significa nivel L5 de conducción autónoma?",
+          "respuesta": "L5 es la automatización total: el vehículo puede circular en cualquier condición sin intervención humana."
+        }
+      ]
+    },
+    {
+      "slug": "relacion-iot-av",
+      "titulo": "Relación entre IoT y vehículos autónomos",
+      "categoria": "generales",
+      "keywords": [
+        "relacion",
+        "v2v",
+        "v2i",
+        "vehiculo a vehiculo",
+        "vehiculo a infraestructura",
+        "latencia",
+        "comunicacion",
+        "edge vs cloud"
+      ],
+      "contextoResumen": "IoT permite que los vehículos autónomos se comuniquen entre sí (V2V) y con la infraestructura (V2I), intercambiando datos en tiempo real para coordinar decisiones de cruce.",
+      "contextoGuia": "La relación entre IoT y los vehículos autónomos se materializa en la comunicación V2V (vehículo a vehículo) y V2I (vehículo a infraestructura). Mediante V2V, los vehículos intercambian posición y velocidad para anticiparse; mediante V2I, un nodo central de la infraestructura recibe el estado de cada vehículo y coordina quién cruza primero. La latencia es el factor crítico: la decisión de cruce debe llegar en milisegundos, por lo que el procesamiento se acerca al borde (edge) en vez de depender de la nube. El proyecto IntersectIA es un caso concreto: un nodo IoT central decide el cruce de vehículos autónomos en una intersección sin semáforos.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es V2V?",
+          "respuesta": "V2V es la comunicación vehículo a vehículo, donde los vehículos intercambian posición y velocidad entre sí en tiempo real."
+        },
+        {
+          "pregunta": "¿Qué es V2I?",
+          "respuesta": "V2I es la comunicación vehículo a infraestructura, donde un nodo central de la infraestructura coordina el tráfico con cada vehículo."
+        },
+        {
+          "pregunta": "¿Por qué es importante la latencia en V2I?",
+          "respuesta": "Porque la decisión de cruce debe llegar en milisegundos, por eso se procesa cerca del borde en lugar de depender de la nube."
+        },
+        {
+          "pregunta": "¿Cómo se relacionan IoT y los vehículos autónomos?",
+          "respuesta": "IoT conecta a los vehículos entre sí (V2V) y con la infraestructura (V2I) para intercambiar datos y coordinar decisiones en tiempo real."
+        }
+      ]
+    },
+    {
+      "slug": "intersectia-proyecto",
+      "titulo": "El proyecto IntersectIA",
+      "categoria": "proyecto",
+      "keywords": [
+        "intersectia",
+        "proyecto",
+        "interseccion",
+        "gestion autonoma",
+        "problematica",
+        "solucion",
+        "nodo central",
+        "cruces"
+      ],
+      "contextoResumen": "IntersectIA es un proyecto educativo que demuestra la gestión autónoma de intersecciones: un nodo IoT central decide qué vehículo cruza primero, reduciendo el tiempo de espera frente a la prioridad tradicional.",
+      "contextoGuia": "IntersectIA es un proyecto educativo sobre la relación entre IoT y los vehículos autónomos. La problemática que aborda es la ineficiencia de las intersecciones sin señalización, donde la prioridad a la derecha genera esperas y demoras. La solución es un gestor de intersección autónomo: un nodo IoT central que recibe el estado de cada vehículo en tiempo real y decide quién cruza primero, minimizando el tiempo de espera promedio. La propuesta se demuestra con una simulación 3D en Three.js y un backend en NestJS que actúa como el nodo IoT central, comparando las métricas del modo gestionado contra el modo tradicional. El proyecto también integra un chatbot educativo como apoyo a la defensa.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es el proyecto IntersectIA?",
+          "respuesta": "Es un proyecto educativo que demuestra la gestión autónoma de intersecciones con IoT y vehículos autónomos, usando un nodo central que decide qué vehículo cruza primero."
+        },
+        {
+          "pregunta": "¿Qué problemática resuelve IntersectIA?",
+          "respuesta": "Resuelve la ineficiencia de las intersecciones sin señalización, donde la prioridad tradicional genera largos tiempos de espera."
+        },
+        {
+          "pregunta": "¿Cuál es la solución de IntersectIA?",
+          "respuesta": "Un nodo IoT central que recibe el estado de cada vehículo en tiempo real y decide quién cruza primero para minimizar la espera promedio."
+        },
+        {
+          "pregunta": "¿Por qué IntersectIA es educativo?",
+          "respuesta": "Porque enseña la relación entre IoT y vehículos autónomos con una demostración interactiva y sirve de apoyo para la defensa del proyecto."
+        }
+      ]
+    },
+    {
+      "slug": "demo-threejs",
+      "titulo": "Cómo funciona la demo 3D",
+      "categoria": "proyecto",
+      "keywords": [
+        "demo",
+        "three.js",
+        "threejs",
+        "simulacion",
+        "webgl",
+        "backend",
+        "frontend",
+        "websocket",
+        "renderiza",
+        "snapshot"
+      ],
+      "contextoResumen": "La demo 3D usa Three.js para renderizar una intersección. El backend simula y mueve los vehículos, y envía el estado por WebSocket a unos 20 veces por segundo; el frontend solo interpola las posiciones.",
+      "contextoGuia": "La demo 3D del proyecto está construida con Three.js, una librería WebGL para gráficos en el navegador. El principio rector es que el backend simula y el frontend solo renderiza: el backend (NestJS) se encarga del spawn, el movimiento y la decisión de cruce, y emite un snapshot completo del mundo por WebSocket aproximadamente 20 veces por segundo (cada 50 ms). El frontend en Three.js recibe esas posiciones y las interpola con lerp para que el movimiento se vea fluido, sin saltos. La cámara es orbitable y la escena incluye calles con carriles por sentido. Todo el estado lógico vive en el backend, lo que representa de verdad un nodo IoT central.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es Three.js?",
+          "respuesta": "Three.js es una librería JavaScript que permite crear gráficos 3D en el navegador usando WebGL."
+        },
+        {
+          "pregunta": "¿Quién simula los vehículos en la demo?",
+          "respuesta": "El backend simula los vehículos; el frontend de Three.js solo recibe el estado y lo renderiza."
+        },
+        {
+          "pregunta": "¿Cómo se comunican el backend y el frontend en la demo?",
+          "respuesta": "El backend envía snapshots del mundo por WebSocket unas 20 veces por segundo y el frontend interpola las posiciones."
+        },
+        {
+          "pregunta": "¿Por qué el frontend usa interpolación?",
+          "respuesta": "Para que los vehículos se vean fluidos aunque los mensajes de red lleguen a una frecuencia menor que la del render."
+        }
+      ]
+    },
+    {
+      "slug": "modo-tradicional-vs-gestionado",
+      "titulo": "Modo tradicional vs gestionado",
+      "categoria": "proyecto",
+      "keywords": [
+        "modo tradicional",
+        "modo gestionado",
+        "interseccion gestionada",
+        "interseccion",
+        "prioridad a la derecha",
+        "articulo 52",
+        "codigo de transito",
+        "bolivia",
+        "metricas",
+        "comparacion",
+        "tiempo de espera"
+      ],
+      "contextoResumen": "El modo tradicional sigue la prioridad a la derecha del Artículo 52 del Código de Tránsito de Bolivia; el modo gestionado usa un nodo IoT central que decide los cruces. Se comparan sus métricas de espera.",
+      "contextoGuia": "La demo permite comparar dos modos de gestión de la intersección. El modo tradicional aplica la regla de prioridad a la derecha establecida en el Artículo 52 del Código Nacional de Tránsito de Bolivia: en un cruce sin señalización, tiene preferencia el vehículo que se aproxima por el lado derecho. Este modo es totalmente local, sin gestor central. El modo gestionado delega la decisión a un nodo IoT central que decide quién cruza para minimizar la espera. El backend registra las métricas de cada cruce en la base de datos, lo que permite comparar el tiempo de espera promedio de ambos modos y demostrar de forma medible el valor del proyecto.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es una intersección gestionada y cuál es su beneficio?",
+          "respuesta": "Una intersección gestionada es aquella donde un nodo IoT central decide qué vehículo cruza primero, reduciendo el tiempo de espera frente a la prioridad a la derecha."
+        },
+        {
+          "pregunta": "¿Qué dice el Artículo 52 del Código de Tránsito de Bolivia?",
+          "respuesta": "Establece que en un cruce sin señalización tiene preferencia de paso el vehículo que se aproxima por el lado derecho."
+        },
+        {
+          "pregunta": "¿Qué diferencia hay entre el modo tradicional y el gestionado?",
+          "respuesta": "El tradicional aplica la prioridad a la derecha de forma local; el gestionado usa un nodo IoT central que decide los cruces para reducir la espera."
+        },
+        {
+          "pregunta": "¿Cómo se comparan los modos en el proyecto?",
+          "respuesta": "El backend registra métricas de cada cruce y permite comparar el tiempo de espera promedio entre el modo tradicional y el gestionado."
+        }
+      ]
+    },
+    {
+      "slug": "ia-decision",
+      "titulo": "La IA de decisión",
+      "categoria": "proyecto",
+      "keywords": [
+        "ia",
+        "inteligencia artificial",
+        "decision",
+        "politica",
+        "fallback",
+        "timeout",
+        "150ms",
+        "llm",
+        "aprendizaje por refuerzo",
+        "qlearning"
+      ],
+      "contextoResumen": "La IA de decisión usa una política liviana entrenada offline (no un LLM) para elegir qué vehículo cruza. Tiene un presupuesto de 150ms con fallback al algoritmo determinista y sus resultados son medibles.",
+      "contextoGuia": "La IA de decisión del proyecto es una política liviana que decide qué vehículo cruza primero la intersección. Crucialmente, NO usa un modelo de lenguaje (LLM): una llamada a un LLM tarda segundos, demasiado para el loop de simulación. En su lugar, se entrena offline una política de aprendizaje por refuerzo (por ejemplo Q-learning) contra un simulador simplificado, donde la recompensa es negativa según el tiempo de espera acumulado. En producción, el backend llama al servicio de IA con un timeout de 150ms y un fallback al algoritmo determinista: si la IA no responde a tiempo, se cae al modo confiable. Los resultados se registran y permiten comparar de forma medible cuánto reduce la IA el tiempo de espera promedio.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿La IA de decisión usa un LLM?",
+          "respuesta": "No. La decisión usa una política liviana entrenada offline, nunca un LLM, porque un LLM es demasiado lento para el loop de simulación."
+        },
+        {
+          "pregunta": "¿Qué es la política de decisión de IntersectIA?",
+          "respuesta": "Es un modelo liviano de aprendizaje por refuerzo entrenado offline que elige qué vehículo cruza primero para minimizar el tiempo de espera."
+        },
+        {
+          "pregunta": "¿Qué pasa si la IA de decisión tarda demasiado?",
+          "respuesta": "El backend tiene un timeout de 150ms y un fallback al algoritmo determinista, de modo que el sistema nunca se traba."
+        },
+        {
+          "pregunta": "¿Cómo se demuestra el valor de la IA de decisión?",
+          "respuesta": "Registrando métricas de cada cruce y comparando el tiempo de espera promedio entre el modo tradicional, el determinista y el de IA."
+        }
+      ]
+    },
+    {
+      "slug": "stack-tecnologico",
+      "titulo": "Stack tecnológico del proyecto",
+      "categoria": "proyecto",
+      "keywords": [
+        "stack",
+        "tecnologias",
+        "next.js",
+        "nestjs",
+        "prisma",
+        "fastapi",
+        "websocket",
+        "aws",
+        "s3",
+        "cloudfront",
+        "ec2",
+        "rds",
+        "lambda",
+        "bedrock",
+        "three.js"
+      ],
+      "contextoResumen": "El proyecto usa Next.js y Three.js en el frontend, NestJS con Prisma en el backend, FastAPI para el servicio de IA y AWS para el despliegue: S3+CloudFront, EC2, RDS y Lambda/Bedrock.",
+      "contextoGuia": "El stack del proyecto IntersectIA está organizado en tres repositorios separados. El frontend usa Next.js con Three.js para la landing y la simulación 3D. El backend usa NestJS con Prisma y WebSocket (socket.io) como gestor de intersección, y es quien actúa como nodo IoT central. El servicio de IA usa FastAPI en Python para el chatbot educativo y la política de decisión. En AWS, el frontend estático se sirve desde S3 con CloudFront, el backend NestJS corre en EC2 por sus conexiones WebSocket persistentes, los datos se guardan en RDS (Postgres) y el chatbot puede ir en Lambda mientras la política de decisión vive cerca del backend en EC2. El chatbot educativo puede usar Bedrock como proveedor de LLM.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué tecnologías usa el frontend?",
+          "respuesta": "El frontend usa Next.js para la landing y Three.js para la simulación 3D."
+        },
+        {
+          "pregunta": "¿Qué tecnologías usa el backend?",
+          "respuesta": "El backend usa NestJS con Prisma y WebSocket (socket.io), y actúa como gestor de intersección."
+        },
+        {
+          "pregunta": "¿Qué es el servicio de IA en Python?",
+          "respuesta": "Es un servicio FastAPI que expone el chatbot educativo y la política de decisión para las intersecciones."
+        },
+        {
+          "pregunta": "¿Cómo se despliega el proyecto en AWS?",
+          "respuesta": "Frontend en S3+CloudFront, backend en EC2, datos en RDS, chatbot en Lambda y la política de decisión cerca del backend en EC2."
+        }
+      ]
+    }
+  ]
+}

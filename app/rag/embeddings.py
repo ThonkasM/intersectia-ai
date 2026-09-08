@@ -1,0 +1,1 @@
+"""Embeddings for the RAG knowledge base."""
