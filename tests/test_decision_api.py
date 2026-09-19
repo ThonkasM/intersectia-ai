@@ -1,10 +1,18 @@
+import pytest
 from fastapi.testclient import TestClient
 
+import app.policy.infer as infer_module
 from app.core.config import get_settings
 from app.main import app
+from app.policy.model import HeuristicPolicy
 
 client = TestClient(app)
 TOKEN = get_settings().internal_service_token
+
+
+@pytest.fixture(autouse=True)
+def use_heuristic_policy(monkeypatch):
+    monkeypatch.setattr(infer_module, "_policy", HeuristicPolicy())
 
 
 def test_health_ok():
@@ -34,7 +42,7 @@ def test_decision_returns_longest_waiting_vehicle():
     assert resp.json() == {"vehicleId": "b"}
 
 
-def test_decision_with_occupant_returns_null():
+def test_decision_accepts_occupant():
     resp = client.post(
         "/decision",
         headers={"X-Internal-Token": TOKEN},
@@ -42,6 +50,16 @@ def test_decision_with_occupant_returns_null():
             "queue": [{"id": "a", "from": "N", "waitedSeconds": 2.0}],
             "occupant": {"id": "occ", "from": "E", "waitedSeconds": 0.0},
         },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["vehicleId"] in {"a", None}
+
+
+def test_decision_empty_queue_returns_null():
+    resp = client.post(
+        "/decision",
+        headers={"X-Internal-Token": TOKEN},
+        json={"queue": []},
     )
     assert resp.status_code == 200
     assert resp.json() == {"vehicleId": None}

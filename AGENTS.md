@@ -29,4 +29,17 @@ pip freeze > requirements.txt
   requests.
 - Both endpoints are protected by `verify_internal_token` (header `X-Internal-Token`) — the AI
   service only accepts traffic from the NestJS backend, never from the browser.
-- Env vars come from pydantic-settings (`app/core/config.py`) with prefix `AI_`, never hardcoded.
+- Env vars come from pydantic-settings (`app/core/config.py`) with prefix `AI_`. The settings now set
+  `env_file=".env"`, so the `.env` **is loaded**; keep it in sync with `.env.example`.
+
+## Policy / RAG conventions
+
+- The trained artifact is **JSON** (`data/trained_policy.json`, gitignored), never `pickle` (avoids
+  arbitrary-code execution on load). `load_trained_policy()` accepts `.json` or legacy `.pkl`.
+- `infer(queue, occupant)` passes the occupant to the policy; accept integer responses including
+  `numpy.integer` but reject `bool`.
+- The chatbot retriever (`app/rag/retriever.py`) is a dependency-free TF-IDF search over
+  `data/knowledge_base/*.md`. Add app knowledge by dropping a `.md` there; add exact answers in
+  `data/topics.json`.
+- `python -m app.policy.train` is offline, CPU-only, reproducible (fixed seed) and prints an
+  evaluation vs heuristic/random. See `docs/TRAINING.md` and `docs/CHATBOT.md`.

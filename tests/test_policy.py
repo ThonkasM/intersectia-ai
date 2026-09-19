@@ -1,6 +1,14 @@
+import pytest
+
+import app.policy.infer as infer_module
 from app.models.schemas import QueuedVehicle
 from app.policy.infer import encode_state, infer
 from app.policy.model import HeuristicPolicy, QTable
+
+
+@pytest.fixture(autouse=True)
+def use_heuristic_policy(monkeypatch):
+    monkeypatch.setattr(infer_module, "_policy", HeuristicPolicy())
 
 
 def vehicle(vehicle_id, direction, waited):

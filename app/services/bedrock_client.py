@@ -2,8 +2,15 @@ import json
 import logging
 
 import boto3
+from botocore.config import Config
 
 logger = logging.getLogger(__name__)
+
+BEDROCK_CONFIG = Config(
+    connect_timeout=2,
+    read_timeout=10,
+    retries={"max_attempts": 1},
+)
 
 SYSTEM_PROMPT_FORMAT = (
     "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n"
@@ -19,7 +26,9 @@ class BedrockUnavailableError(Exception):
 class BedrockClient:
     def __init__(self, model_id: str, region: str):
         self.model_id = model_id
-        self.client = boto3.client("bedrock-runtime", region_name=region)
+        self.client = boto3.client(
+            "bedrock-runtime", region_name=region, config=BEDROCK_CONFIG
+        )
 
     def invoke(self, prompt: str, max_gen_len: int = 512) -> str:
         formatted_prompt = SYSTEM_PROMPT_FORMAT.format(prompt=prompt)

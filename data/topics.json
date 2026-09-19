@@ -298,6 +298,172 @@
           "respuesta": "Frontend en S3+CloudFront, backend en EC2, datos en RDS, chatbot en Lambda y la política de decisión cerca del backend en EC2."
         }
       ]
+    },
+    {
+      "slug": "controles-demo",
+      "titulo": "Controles de la demo 3D",
+      "categoria": "proyecto",
+      "keywords": [
+        "gamepad",
+        "mando",
+        "controles",
+        "camara",
+        "minimapa",
+        "primera persona",
+        "zoom",
+        "raton",
+        "clic"
+      ],
+      "contextoResumen": "La demo se controla con el raton (orbitar, zoom, clic para congelar) y con un gamepad (gatillos para acelerar/frenar, botones para cambiar de carril y de camara). Cada visitante tiene su propia sesion.",
+      "contextoGuia": "Explica los controles de la demo. Raton: arrastrar para orbitar, rueda para zoom, clic sobre un vehiculo autonomo para congelarlo o reanudarlo. Gamepad: gatillos para acelerar/frenar, botones 4/5 para cambiar de carril, boton X para alternar camara orbital/primera persona, boton Y para el zoom del minimapa.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Como se controla la demo?",
+          "respuesta": "Con el raton puedes orbitar (arrastrando), hacer zoom (rueda) y congelar o reanudar un vehiculo autonomo haciendo clic sobre el. Con un gamepad controlas el vehiculo del jugador: gatillos para acelerar/frenar, botones 4/5 para cambiar de carril, boton X para cambiar de camara y boton Y para el zoom del minimapa."
+        },
+        {
+          "pregunta": "¿Como cambio de camara?",
+          "respuesta": "Con el boton X del gamepad alternas entre la camara orbital y la primera persona. En primera persona aparece un minimapa en una esquina."
+        },
+        {
+          "pregunta": "¿Como congelo un vehiculo?",
+          "respuesta": "Haz clic sobre un vehiculo autonomo (sin arrastrar) para congelarlo; vuelve a hacer clic para reanudarlo."
+        }
+      ]
+    },
+    {
+      "slug": "metricas",
+      "titulo": "Metricas de la simulacion",
+      "categoria": "proyecto",
+      "keywords": [
+        "metricas",
+        "espera",
+        "promedio",
+        "avgWaitSeconds",
+        "crossings",
+        "violaciones",
+        "totalViolations",
+        "resumen"
+      ],
+      "contextoResumen": "El backend expone GET /metrics/avg?mode= y GET /metrics/summary. La espera promedio se calcula sobre los cruces guardados en PostgreSQL.",
+      "contextoGuia": "Explica las metricas. GET /metrics/avg?mode=managed devuelve avgWaitSeconds y total. GET /metrics/summary devuelve totalCrossings, totalViolations y avgWaitByMode. La espera promedio se calcula sobre los cruces registrados en la base de datos.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Que metricas ofrece el sistema?",
+          "respuesta": "El backend expone GET /metrics/avg?mode= (espera promedio y total de cruces por modo) y GET /metrics/summary (total de cruces, total de violaciones y espera promedio por modo)."
+        },
+        {
+          "pregunta": "¿Que es la espera promedio?",
+          "respuesta": "Es el promedio del tiempo que los vehiculos esperan en la cola antes de ser autorizados a cruzar, calculado sobre los cruces guardados en PostgreSQL."
+        }
+      ]
+    },
+    {
+      "slug": "sesiones",
+      "titulo": "Sesiones aisladas por visitante",
+      "categoria": "proyecto",
+      "keywords": [
+        "sesion",
+        "sesiones",
+        "aislada",
+        "multi-sesion",
+        "sala",
+        "sessionId",
+        "varios usuarios",
+        "cada persona"
+      ],
+      "contextoResumen": "Cada visitante que entra a la demo recibe su propia sesion de simulacion, aislada del resto mediante salas de socket.io. Las acciones de un usuario no afectan a otro.",
+      "contextoGuia": "Cada cliente genera un sessionId en el navegador y se une a una sala de socket.io. El backend mantiene una simulacion independiente por sesion (vehiculos, cola y ocupantes propios). Cuando la sala queda vacia, la sesion se libera tras un periodo de gracia.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Cada usuario ve lo mismo?",
+          "respuesta": "No. Cada visitante tiene su propia sesion de simulacion aislada; lo que haces en la demo no afecta a los demas."
+        },
+        {
+          "pregunta": "¿Como se aislan las sesiones?",
+          "respuesta": "El frontend genera un sessionId y se une a una sala de socket.io. El backend mantiene un estado de simulacion independiente por sesion y emite el estado solo a esa sala."
+        }
+      ]
+    },
+    {
+      "slug": "estados-vehiculo",
+      "titulo": "Estados de un vehiculo",
+      "categoria": "proyecto",
+      "keywords": [
+        "approach",
+        "queued",
+        "crossing",
+        "success",
+        "gone",
+        "frozen",
+        "crashed",
+        "estados",
+        "cola"
+      ],
+      "contextoResumen": "Los estados son approach, queued, crossing, success y gone, mas frozen (detenido manualmente) y crashed (colision).",
+      "contextoGuia": "approach: se aproxima. queued: espera en la linea de parada. crossing: autorizado a cruzar. success: ya despejo la interseccion. gone: salio de escena. frozen: detenido por un usuario. crashed: colisiono (si las colisiones estan activas).",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Que significa que un vehiculo este queued?",
+          "respuesta": "Que esta detenido en la linea de parada esperando autorizacion para cruzar."
+        },
+        {
+          "pregunta": "¿Que diferencia hay entre crossing y success?",
+          "respuesta": "crossing significa que fue autorizado y esta cruzando; success que ya despejo la interseccion y se aleja."
+        }
+      ]
+    },
+    {
+      "slug": "handover-jugador",
+      "titulo": "Handover del vehiculo del jugador",
+      "categoria": "proyecto",
+      "keywords": [
+        "handover",
+        "jugador",
+        "player",
+        "timeout",
+        "2000ms",
+        "vehiculo jugador",
+        "control"
+      ],
+      "contextoResumen": "El backend recibe la posicion del jugador a unos 15 Hz. Si deja de recibir datos durante mas de 2 segundos, el vehiculo pasa a modo autonomo (handover).",
+      "contextoGuia": "El frontend envia playerState a unos 15 Hz. El backend no calcula la posicion del jugador, solo la recibe. Si no llega ningun playerState en mas de 2000 ms, el backend marca el vehiculo como autonomo y el loop retoma su movimiento.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Que pasa si se desconecta el gamepad?",
+          "respuesta": "Si el backend deja de recibir la posicion del jugador durante mas de 2 segundos, el vehiculo pasa a modo autonomo y termina el cruce por si solo (handover)."
+        }
+      ]
+    },
+    {
+      "slug": "problemas-frecuentes",
+      "titulo": "Problemas frecuentes",
+      "categoria": "proyecto",
+      "keywords": [
+        "error",
+        "problema",
+        "no funciona",
+        "403",
+        "token",
+        "postgres",
+        "migracion",
+        "puerto",
+        "EADDRINUSE",
+        "desconectado",
+        "ayuda tecnica"
+      ],
+      "contextoResumen": "Errores comunes: tabla no existe (faltan migraciones de Prisma), llamadas a la IA con 403 (token interno no coincide), IA que usa la heuristica (no existe trained_policy.json) y puerto 3000 ocupado (frontend y backend no deben usar el mismo).",
+      "contextoGuia": "Si falta una tabla en PostgreSQL ejecuta npx prisma migrate dev. El token INTERNAL_SERVICE_TOKEN del backend debe coincidir con AI_INTERNAL_SERVICE_TOKEN de la IA. Si no existe data/trained_policy.json la IA usa la heuristica. Si el puerto 3000 esta ocupado, lanza el frontend en 3001.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Por que la IA no responde?",
+          "respuesta": "Puede ser que el token interno no coincida (403) o que falte el archivo de la politica entrenada; en ese caso el servicio usa la heuristica sin fallar."
+        },
+        {
+          "pregunta": "¿Por que el backend da error de tabla inexistente?",
+          "respuesta": "Faltan las migraciones de Prisma. Ejecuta npx prisma migrate dev en intersectia-backend."
+        }
+      ]
     }
   ]
 }
