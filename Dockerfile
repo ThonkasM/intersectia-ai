@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 COPY data ./data
 
+# Entrena la politica (CPU, segundos, reproducible) para que el artefacto quede
+# dentro de la imagen; no depende del archivo gitignored.
+RUN python -m app.policy.train
+
 USER appuser
 
 EXPOSE 8000
