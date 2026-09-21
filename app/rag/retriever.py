@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
-from app.rag.embeddings import embed, tokenize
+from app.rag.embeddings import embed, meaningful_terms, tokenize
 from app.rag.loader import BASE_DIR
 
 logger = logging.getLogger(__name__)
@@ -80,14 +80,14 @@ class Retriever:
     ) -> list[Chunk]:
         if not self.chunks:
             return []
-        terms = tokenize(query)
-        if not terms:
+        unique_terms = set(meaningful_terms(tokenize(query)))
+        if not unique_terms:
             return []
         scored: list[tuple[float, Chunk]] = []
         for chunk in self.chunks:
             score = sum(
-                self._idf(term) for term in set(terms) if term in chunk.vector
-            ) / math.sqrt(len(terms))
+                self._idf(term) for term in unique_terms if term in chunk.vector
+            ) / math.sqrt(len(unique_terms))
             if score >= min_score:
                 scored.append((score, chunk))
         scored.sort(key=lambda item: item[0], reverse=True)

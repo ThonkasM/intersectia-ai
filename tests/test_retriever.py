@@ -17,3 +17,9 @@ def test_retriever_finds_demo_controls():
 def test_retriever_ignores_unrelated_query():
     retriever = get_retriever()
     assert retriever.search("xqztvqw 92") == []
+
+
+def test_retriever_ignores_math_or_stopword_only_query():
+    retriever = get_retriever()
+    assert retriever.search("cuanto es 2 + 2") == []
+    assert retriever.search("que es") == []
