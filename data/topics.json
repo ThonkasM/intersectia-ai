@@ -197,10 +197,15 @@
         "bolivia",
         "metricas",
         "comparacion",
-        "tiempo de espera"
+        "tiempo de espera",
+        "managed-ai",
+        "fifo",
+        "motor",
+        "engine",
+        "decision"
       ],
       "contextoResumen": "El modo tradicional sigue la prioridad a la derecha del Artículo 52 del Código de Tránsito de Bolivia; el modo gestionado usa un nodo IoT central que decide los cruces. Se comparan sus métricas de espera.",
-      "contextoGuia": "La demo permite comparar dos modos de gestión de la intersección. El modo tradicional aplica la regla de prioridad a la derecha establecida en el Artículo 52 del Código Nacional de Tránsito de Bolivia: en un cruce sin señalización, tiene preferencia el vehículo que se aproxima por el lado derecho. Este modo es totalmente local, sin gestor central. El modo gestionado delega la decisión a un nodo IoT central que decide quién cruza para minimizar la espera. El backend registra las métricas de cada cruce en la base de datos, lo que permite comparar el tiempo de espera promedio de ambos modos y demostrar de forma medible el valor del proyecto.",
+      "contextoGuia": "La demo permite comparar dos modos de gestión de la intersección. El modo tradicional aplica la regla de prioridad a la derecha establecida en el Artículo 52 del Código Nacional de Tránsito de Bolivia: en un cruce sin señalización, tiene preferencia el vehículo que se aproxima por el lado derecho. Este modo es totalmente local, sin gestor central. El modo gestionado delega la decisión a un nodo IoT central que decide quién cruza para minimizar la espera. El backend registra las métricas de cada cruce en la base de datos, lo que permite comparar el tiempo de espera promedio de ambos modos y demostrar de forma medible el valor del proyecto. En total hay tres motores de decisión, cada uno con su identificador en el evento decision: right-priority (tradicional), fifo (managed) y ai (managed-ai).",
       "preguntasRespuestas": [
         {
           "pregunta": "¿Qué es una intersección gestionada y cuál es su beneficio?",
@@ -234,7 +239,9 @@
         "150ms",
         "llm",
         "aprendizaje por refuerzo",
-        "qlearning"
+        "qlearning",
+        "cache",
+        "q-table"
       ],
       "contextoResumen": "La IA de decisión usa una política liviana entrenada offline (no un LLM) para elegir qué vehículo cruza. Tiene un presupuesto de 150ms con fallback al algoritmo determinista y sus resultados son medibles.",
       "contextoGuia": "La IA de decisión del proyecto es una política liviana que decide qué vehículo cruza primero la intersección. Crucialmente, NO usa un modelo de lenguaje (LLM): una llamada a un LLM tarda segundos, demasiado para el loop de simulación. En su lugar, se entrena offline una política de aprendizaje por refuerzo (por ejemplo Q-learning) contra un simulador simplificado, donde la recompensa es negativa según el tiempo de espera acumulado. En producción, el backend llama al servicio de IA con un timeout de 150ms y un fallback al algoritmo determinista: si la IA no responde a tiempo, se cae al modo confiable. Los resultados se registran y permiten comparar de forma medible cuánto reduce la IA el tiempo de espera promedio.",
@@ -254,6 +261,10 @@
         {
           "pregunta": "¿Cómo se demuestra el valor de la IA de decisión?",
           "respuesta": "Registrando métricas de cada cruce y comparando el tiempo de espera promedio entre el modo tradicional, el determinista y el de IA."
+        },
+        {
+          "pregunta": "¿La IA decide en cada tick?",
+          "respuesta": "No necesariamente. La decisión se cachea por firma de la cola y solo se recalcula cuando cambia, pasando de unas 20 consultas por segundo a cerca de 1."
         }
       ]
     },
@@ -274,12 +285,15 @@
         "cloudfront",
         "ec2",
         "rds",
-        "lambda",
+        "fargate",
+        "ecs",
+        "expo",
+        "movil",
         "bedrock",
         "three.js"
       ],
-      "contextoResumen": "El proyecto usa Next.js y Three.js en el frontend, NestJS con Prisma en el backend, FastAPI para el servicio de IA y AWS para el despliegue: S3+CloudFront, EC2, RDS y Lambda/Bedrock.",
-      "contextoGuia": "El stack del proyecto IntersectIA está organizado en tres repositorios separados. El frontend usa Next.js con Three.js para la landing y la simulación 3D. El backend usa NestJS con Prisma y WebSocket (socket.io) como gestor de intersección, y es quien actúa como nodo IoT central. El servicio de IA usa FastAPI en Python para el chatbot educativo y la política de decisión. En AWS, el frontend estático se sirve desde S3 con CloudFront, el backend NestJS corre en EC2 por sus conexiones WebSocket persistentes, los datos se guardan en RDS (Postgres) y el chatbot puede ir en Lambda mientras la política de decisión vive cerca del backend en EC2. El chatbot educativo puede usar Bedrock como proveedor de LLM.",
+      "contextoResumen": "El proyecto usa Next.js y Three.js en el frontend, NestJS con Prisma en el backend, FastAPI para la IA y una app Expo en móvil, organizado en cuatro repos. En AWS: S3+CloudFront para el frontend estático, backend+IA juntos (VM o ECS Fargate), RDS Postgres y Bedrock solo para el chat.",
+      "contextoGuia": "El stack del proyecto IntersectIA está organizado en cuatro repositorios: frontend, backend, servicio de IA y app móvil. El frontend usa Next.js con Three.js para la landing y la simulación 3D (export estático). El backend usa NestJS con Prisma y WebSocket (socket.io) como gestor de intersección, y es quien actúa como nodo IoT central. El servicio de IA usa FastAPI en Python: /decision (política liviana, sin LLM) y /chat (chatbot). La app móvil usa Expo (SDK 57). En AWS el frontend estático se sirve desde S3 con CloudFront; el backend y la IA corren juntos (en una VM con Docker o en dos contenedores de la misma task de ECS Fargate, donde la IA se llama por localhost:8000); los datos se guardan en RDS Postgres; y el chat puede usar Bedrock como LLM. La decisión de IA nunca va en AWS Lambda porque no encaja con WebSocket persistente ni con estado en memoria.",
       "preguntasRespuestas": [
         {
           "pregunta": "¿Qué tecnologías usa el frontend?",
@@ -295,7 +309,11 @@
         },
         {
           "pregunta": "¿Cómo se despliega el proyecto en AWS?",
-          "respuesta": "Frontend en S3+CloudFront, backend en EC2, datos en RDS, chatbot en Lambda y la política de decisión cerca del backend en EC2."
+          "respuesta": "El frontend estático en S3+CloudFront; el backend y la IA juntos (en una VM con Docker o en dos contenedores de la misma task de ECS Fargate, con la IA en localhost:8000); los datos en RDS Postgres; y el chat con Bedrock. La decisión de IA nunca va en Lambda."
+        },
+        {
+          "pregunta": "¿El proyecto tiene app móvil?",
+          "respuesta": "Sí, una app en Expo (SDK 57) en el repo intersectia-mobile. Replica la landing y ofrece el chatbot; consume el mismo backend, sin simulación ni WebSocket."
         }
       ]
     },
@@ -343,18 +361,32 @@
         "crossings",
         "violaciones",
         "totalViolations",
-        "resumen"
+        "resumen",
+        "throughput",
+        "p95",
+        "equidad",
+        "fairness",
+        "node",
+        "por minuto"
       ],
-      "contextoResumen": "El backend expone GET /metrics/avg?mode= y GET /metrics/summary. La espera promedio se calcula sobre los cruces guardados en PostgreSQL.",
-      "contextoGuia": "Explica las metricas. GET /metrics/avg?mode=managed devuelve avgWaitSeconds y total. GET /metrics/summary devuelve totalCrossings, totalViolations y avgWaitByMode. La espera promedio se calcula sobre los cruces registrados en la base de datos.",
+      "contextoResumen": "El backend expone GET /metrics/avg?mode=, GET /metrics/summary y GET /metrics/node?window=. La espera promedio se calcula sobre los cruces guardados en PostgreSQL.",
+      "contextoGuia": "Explica las métricas. GET /metrics/avg?mode=managed devuelve avgWaitSeconds y total. GET /metrics/summary devuelve totalCrossings, totalViolations y avgWaitByMode. GET /metrics/node?window=<seg> calcula, sobre una ventana (60 s por defecto, máx. 3600), el throughput por minuto, la espera promedio, el p95 y la equidad por dirección (fairnessGapSeconds) con su desglose byDirection. La espera promedio se calcula sobre los cruces registrados en la base de datos.",
       "preguntasRespuestas": [
         {
           "pregunta": "¿Que metricas ofrece el sistema?",
-          "respuesta": "El backend expone GET /metrics/avg?mode= (espera promedio y total de cruces por modo) y GET /metrics/summary (total de cruces, total de violaciones y espera promedio por modo)."
+          "respuesta": "El backend expone GET /metrics/avg?mode= (espera promedio y total por modo), GET /metrics/summary (cruces, violaciones y espera promedio por modo) y GET /metrics/node?window= (throughput, p95 y equidad por dirección)."
         },
         {
           "pregunta": "¿Que es la espera promedio?",
           "respuesta": "Es el promedio del tiempo que los vehiculos esperan en la cola antes de ser autorizados a cruzar, calculado sobre los cruces guardados en PostgreSQL."
+        },
+        {
+          "pregunta": "¿Que muestra GET /metrics/node?",
+          "respuesta": "El desempeño del nodo en una ventana de tiempo: throughput por minuto, espera promedio, p95 y equidad entre direcciones (fairnessGapSeconds), con el desglose por dirección."
+        },
+        {
+          "pregunta": "¿Que significa el p95 de espera?",
+          "respuesta": "Que el 95% de los vehículos esperó menos que ese valor; refleja la cola de la distribución, que el promedio puede esconder."
         }
       ]
     },
@@ -462,6 +494,534 @@
         {
           "pregunta": "¿Por que el backend da error de tabla inexistente?",
           "respuesta": "Faltan las migraciones de Prisma. Ejecuta npx prisma migrate dev en intersectia-backend."
+        }
+      ]
+    },
+    {
+      "slug": "aim-gestion-autonoma",
+      "titulo": "Gestión autónoma de intersecciones (AIM)",
+      "categoria": "generales",
+      "keywords": [
+        "aim",
+        "gestion autonoma",
+        "gestion de intersecciones",
+        "reserva",
+        "reservas",
+        "espacio-tiempo",
+        "dresner",
+        "stone",
+        "paper",
+        "articulo",
+        "academico",
+        "paradigma"
+      ],
+      "contextoResumen": "AIM (Dresner y Stone, 2008) es el paradigma en que se basa IntersectIA: la intersección es un agente gestor que concede reservas de espacio-tiempo a los vehículos. Subsume semáforos y stops.",
+      "contextoGuia": "La Gestión Autónoma de Intersecciones (AIM, Autonomous Intersection Management) fue propuesta por Kurt Dresner y Peter Stone en 2008. Trata la intersección como un agente gestor y a cada vehículo como un agente conductor que solicita reservas de espacio-tiempo (qué celdas usará y en qué intervalo). El gestor confirma, rechaza o contraoferta. Como puede emular un semáforo o un stop, subsume los controles actuales y los supera en simulación cuando hay muchos vehículos autónomos. IntersectIA implementa una versión simplificada basada en cola y decisión.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿En qué teoría se basa IntersectIA?",
+          "respuesta": "En el paradigma AIM (Autonomous Intersection Management) de Dresner y Stone (2008), donde la intersección es un gestor que concede reservas de espacio-tiempo a los vehículos."
+        },
+        {
+          "pregunta": "¿Qué es una reserva de espacio-tiempo?",
+          "respuesta": "Es la concesión de un tramo de la intersección durante un intervalo de tiempo; el vehículo la solicita y el gestor la aprueba, rechaza o contraoferta."
+        },
+        {
+          "pregunta": "¿AIM reemplaza al semáforo?",
+          "respuesta": "AIM puede emular un semáforo o un stop, por eso los subsume; con vehículos autónomos puede superarlos en espera y throughput."
+        }
+      ]
+    },
+    {
+      "slug": "interseccion-sin-semaforo",
+      "titulo": "Intersecciones sin semáforo vs semáforos",
+      "categoria": "generales",
+      "keywords": [
+        "sin semaforo",
+        "semaforo",
+        "signal-free",
+        "signal free",
+        "fases",
+        "actuado",
+        "adaptativo",
+        "max-pressure",
+        "max pressure",
+        "idle time",
+        "demanda"
+      ],
+      "contextoResumen": "Un semáforo asigna el paso por fases y desperdicia tiempo con poco tráfico. Con vehículos conectados se puede gestionar el cruce vehículo a vehículo, sin fases.",
+      "contextoGuia": "Un semáforo asigna el derecho de paso por fases (fijas o actuadas). Es eficiente con demanda alta y equilibrada, pero pierde tiempo (idle time) cuando hay poco tráfico o demanda desigual: los vehículos esperan con el otro carril vacío. Los controladores actuados y adaptativos ajustan las fases con sensores, y los modernos usan presión de cola (max-pressure, Varaiya 2013). Con vehículos conectados la infraestructura conoce posición y velocidad (V2I), así que puede conceder el cruce vehículo a vehículo sin fases: es el enfoque sin semáforo que demuestra IntersectIA.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Por qué una intersección sin semáforo puede ser más eficiente?",
+          "respuesta": "Porque no obliga a esperar una fase completa: con vehículos conectados el gestor concede el cruce vehículo a vehículo según la demanda real."
+        },
+        {
+          "pregunta": "¿Qué es el idle time de un semáforo?",
+          "respuesta": "Es el tiempo perdido cuando un carril tiene luz verde pero no hay vehículos; con poco tráfico o demanda desigual desperdicia capacidad."
+        },
+        {
+          "pregunta": "¿Qué es el control max-pressure?",
+          "respuesta": "Un controlador moderno que elige la fase que maximiza la presión de las colas; es una referencia en control de tráfico adaptativo."
+        }
+      ]
+    },
+    {
+      "slug": "taxonomia-v2x",
+      "titulo": "Taxonomía V2X y tecnologías (C-V2X, DSRC)",
+      "categoria": "generales",
+      "keywords": [
+        "v2x",
+        "v2p",
+        "v2n",
+        "c-v2x",
+        "cv2x",
+        "dsrc",
+        "802.11p",
+        "802.11bd",
+        "its-g5",
+        "5.9 ghz",
+        "pc5",
+        "sidelink",
+        "bsm",
+        "j2735",
+        "peaton"
+      ],
+      "contextoResumen": "V2X agrupa V2V, V2I, V2P (peatón) y V2N (red). Las tecnologías son C-V2X (3GPP, enlace PC5) y DSRC/ITS-G5 (IEEE 802.11p). Los mensajes se estandarizan como BSM (SAE J2735).",
+      "contextoGuia": "V2X (vehicle-to-everything) agrupa V2V (vehículo-vehículo), V2I (vehículo-infraestructura), V2P (vehículo-peatón) y V2N (vehículo-red). Dos familias de radio compiten en la banda de 5.9 GHz: C-V2X (de 3GPP, con enlace directo PC5 sidelink para V2V/V2I y red celular para V2N) y DSRC/ITS-G5 (basado en Wi-Fi, IEEE 802.11p y su evolución 802.11bd). Los mensajes periódicos de estado del vehículo se estandarizan en SAE J2735 como BSM (Basic Safety Message). IntersectIA no usa radio real: el equivalente son los eventos de socket.io y playerState.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué significa V2X?",
+          "respuesta": "Vehicle-to-everything: la comunicación del vehículo con todo su entorno, que incluye V2V, V2I, V2P y V2N."
+        },
+        {
+          "pregunta": "¿Qué diferencia hay entre C-V2X y DSRC?",
+          "respuesta": "C-V2X viene de 3GPP y usa un enlace directo PC5 (sidelink) más la red celular; DSRC/ITS-G5 se basa en Wi-Fi (IEEE 802.11p). Ambos operan en la banda de 5.9 GHz."
+        },
+        {
+          "pregunta": "¿Qué es un BSM?",
+          "respuesta": "El Basic Safety Message de SAE J2735: el mensaje periódico con la posición y el estado del vehículo que se difunde por V2X."
+        }
+      ]
+    },
+    {
+      "slug": "sae-j3016",
+      "titulo": "SAE J3016: DDT, ODD y responsabilidad",
+      "categoria": "generales",
+      "keywords": [
+        "j3016",
+        "ddt",
+        "odd",
+        "fallback",
+        "nivel 3",
+        "nivel 4",
+        "l3",
+        "l4",
+        "tarea dinamica",
+        "dominio de diseno"
+      ],
+      "contextoResumen": "SAE J3016 define los niveles según quién hace la tarea de conducción (DDT) y su fallback dentro de un ODD. La diferencia clave es L3 (pide al humano que retome) vs L4 (no lo pide).",
+      "contextoGuia": "La norma SAE J3016 (ISO PAS 22736) define los niveles de automatización según quién ejecuta la tarea dinámica de conducción (DDT) y su fallback, dentro de un ODD (dominio de diseño operacional). La diferencia clave está entre L3 y L4: en L3 el sistema conduce pero pide al humano que retome cuando lo requiere; en L4 el sistema resuelve el fallback sin intervención humana dentro de su ODD, por eso L4 puede prescindir del volante y L3 no. L5 es L4 sin restricción de ODD.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué significa DDT en SAE J3016?",
+          "respuesta": "Dynamic Driving Task: la tarea dinámica de conducción. El nivel de automatización depende de quién la ejecuta y de quién hace el fallback."
+        },
+        {
+          "pregunta": "¿Qué diferencia hay entre L3 y L4?",
+          "respuesta": "En L3 el sistema pide al humano que retome el control cuando lo necesita; en L4 el sistema resuelve el fallback solo, dentro de su ODD."
+        },
+        {
+          "pregunta": "¿Qué es el ODD?",
+          "respuesta": "Operational Design Domain: el dominio de condiciones (vía, clima, velocidad) dentro del cual un sistema de conducción automatizada está diseñado para operar."
+        }
+      ]
+    },
+    {
+      "slug": "aprendizaje-por-refuerzo",
+      "titulo": "Aprendizaje por refuerzo (MDP y Q-learning)",
+      "categoria": "generales",
+      "keywords": [
+        "aprendizaje por refuerzo",
+        "reinforcement learning",
+        "rl",
+        "mdp",
+        "markov",
+        "q-learning",
+        "qlearning",
+        "estado",
+        "accion",
+        "recompensa",
+        "bellman",
+        "offline"
+      ],
+      "contextoResumen": "La decisión se modela como un MDP (estado, acción, recompensa) y se resuelve con Q-learning: una tabla entrenada offline en CPU que maximiza la recompensa y penaliza la espera.",
+      "contextoGuia": "El aprendizaje por refuerzo modela la decisión como un proceso de decisión de Markov (MDP) con estado, acción y recompensa. En IntersectIA el estado es la cola y quién ocupa la intersección, la acción es qué vehículo liberar y la recompensa penaliza la espera acumulada. Q-learning aprende una tabla Q(estado, acción) con la ecuación de Bellman, sin conocer el modelo del entorno. El entrenamiento es offline y en CPU, con semilla fija, y el resultado (Q-table en JSON) se carga en memoria. Por eso es rápido y cabe en el presupuesto de 150 ms, a diferencia de un LLM.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es un MDP?",
+          "respuesta": "Un proceso de decisión de Markov: un modelo con estado, acción y recompensa que se usa para aprender una política óptima."
+        },
+        {
+          "pregunta": "¿Cómo aprende la política de IntersectIA?",
+          "respuesta": "Con Q-learning offline: se entrena una tabla Q(estado, acción) contra un simulador simplificado, en CPU y con semilla fija, y se guarda como JSON."
+        },
+        {
+          "pregunta": "¿Por qué no usar un LLM para decidir?",
+          "respuesta": "Porque un LLM tarda segundos y la decisión debe resolverse en 150 ms; el LLM solo se usa en el chat, fuera de la ruta crítica."
+        }
+      ]
+    },
+    {
+      "slug": "equidad-y-inanicion",
+      "titulo": "Equidad, p95 e inanición",
+      "categoria": "generales",
+      "keywords": [
+        "equidad",
+        "fairness",
+        "p95",
+        "percentil",
+        "inanicion",
+        "starvation",
+        "deadlock",
+        "livelock",
+        "justicia",
+        "direcciones"
+      ],
+      "contextoResumen": "No basta el promedio: se miran el p95 y la equidad entre direcciones. La inanición (una dirección que nunca cruza) se acota con un límite de espera de 25 s.",
+      "contextoGuia": "Minimizar la espera promedio no basta: una política puede tener buen promedio y aun así dejar que una dirección espere muchísimo. Por eso se miden el p95 (la cola de la distribución) y la equidad entre direcciones (la brecha entre la mejor y la peor). La inanición (starvation) es cuando una dirección nunca recibe el cruce; el deadlock o livelock es que el sistema se trabe. IntersectIA acota la inanición con un límite de espera de 25 segundos que prioriza al vehículo postergado.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Por qué no alcanza con la espera promedio?",
+          "respuesta": "Porque un buen promedio puede esconder una dirección muy perjudicada; por eso también se miran el p95 y la equidad entre direcciones."
+        },
+        {
+          "pregunta": "¿Qué es la inanición en una intersección?",
+          "respuesta": "Que una dirección nunca reciba el derecho de cruce. IntersectIA la evita priorizando al vehículo que esperó más de 25 segundos."
+        },
+        {
+          "pregunta": "¿Qué es la equidad entre direcciones?",
+          "respuesta": "La brecha entre la dirección con mejor y peor desempeño; el endpoint /metrics/node la reporta como fairnessGapSeconds."
+        }
+      ]
+    },
+    {
+      "slug": "trafico-mixto",
+      "titulo": "Tráfico mixto humano-autónomo",
+      "categoria": "generales",
+      "keywords": [
+        "trafico mixto",
+        "mixed autonomy",
+        "penetracion",
+        "convivencia",
+        "humano",
+        "conductor humano",
+        "transicion",
+        "adopcion"
+      ],
+      "contextoResumen": "La adopción de autónomos es gradual, así que humanos y autónomos conviven (mixed autonomy). El vehículo del jugador representa al humano en IntersectIA.",
+      "contextoGuia": "En la práctica la adopción de vehículos autónomos es gradual, así que durante años conviven humanos y autónomos (mixed autonomy). Los estudios muestran que basta una penetración parcial de vehículos conectados o autónomos para mejorar espera y throughput, aunque el beneficio depende de cuántos y dónde estén. En IntersectIA el vehículo del jugador representa al humano y prueba la coordinación en ese escenario mixto, incluido el handover cuando el humano deja de responder.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es el tráfico mixto?",
+          "respuesta": "La convivencia de vehículos humanos y autónomos en la misma vía, típica de la transición gradual hacia la autonomía."
+        },
+        {
+          "pregunta": "¿Cómo representa IntersectIA al conductor humano?",
+          "respuesta": "Con el vehículo del jugador, controlado por gamepad; si deja de enviar datos, el backend lo pasa a modo autónomo (handover)."
+        }
+      ]
+    },
+    {
+      "slug": "edge-mec-latencia",
+      "titulo": "Edge computing, MEC y latencia",
+      "categoria": "generales",
+      "keywords": [
+        "edge",
+        "mec",
+        "multi-access edge",
+        "borde",
+        "latencia",
+        "nube",
+        "cloud",
+        "percibir decidir actuar",
+        "tiempo real"
+      ],
+      "contextoResumen": "El edge/MEC procesa datos cerca de su origen para bajar la latencia. El ciclo percibir, decidir y actuar debe caber en el presupuesto de 150 ms de la decisión.",
+      "contextoGuia": "El edge computing (y su versión de red, MEC, Multi-access Edge Computing) procesa los datos cerca de su origen para reducir la latencia frente a la nube. En una intersección la decisión debe llegar en decenas de milisegundos, por eso el gestor corre junto a la simulación y no en la nube. El ciclo de control es percibir, decidir y actuar; cada etapa suma latencia y el presupuesto total del proyecto es de 150 ms para la decisión. El chatbot, que no está en la ruta crítica, sí puede permitirse un LLM.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Por qué procesar en el edge y no en la nube?",
+          "respuesta": "Para reducir la latencia: la decisión de cruce debe llegar en decenas de milisegundos y la nube añade demasiado retardo."
+        },
+        {
+          "pregunta": "¿Qué es MEC?",
+          "respuesta": "Multi-access Edge Computing: llevar cómputo a la red de acceso, cerca del usuario, para bajar la latencia."
+        },
+        {
+          "pregunta": "¿Cuál es el ciclo de control de un vehículo autónomo?",
+          "respuesta": "Percibir el entorno, decidir la acción y actuar sobre los controles; cada etapa suma latencia."
+        }
+      ]
+    },
+    {
+      "slug": "gemelo-digital",
+      "titulo": "Gemelo digital y simulación determinista",
+      "categoria": "generales",
+      "keywords": [
+        "gemelo digital",
+        "digital twin",
+        "simulacion",
+        "determinista",
+        "reproducible",
+        "dataset",
+        "semilla",
+        "dataset de metricas"
+      ],
+      "contextoResumen": "El backend actúa como gemelo digital ligero: simula de forma determinista y reproducible, lo que permite generar datasets de métricas y comparar políticas.",
+      "contextoGuia": "Un gemelo digital es una réplica virtual de un sistema físico. El backend de IntersectIA actúa como un gemelo digital ligero: simula el paso de vehículos de forma determinista y reproducible (misma entrada, misma salida). Esto permite generar datasets de métricas (esperas, cruces, violaciones) y comparar políticas en igualdad de condiciones. En el entrenamiento del agente se fija una semilla para que los experimentos sean reproducibles.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Qué es un gemelo digital?",
+          "respuesta": "Una réplica virtual de un sistema físico que permite simular, observar y experimentar sin tocar el sistema real."
+        },
+        {
+          "pregunta": "¿Por qué importa que la simulación sea determinista?",
+          "respuesta": "Porque con la misma entrada da la misma salida: permite comparar políticas de forma justa y reproducir resultados."
+        }
+      ]
+    },
+    {
+      "slug": "etica-y-responsabilidad",
+      "titulo": "Ética y responsabilidad en la decisión",
+      "categoria": "generales",
+      "keywords": [
+        "etica",
+        "responsabilidad",
+        "legal",
+        "dilema",
+        "prioridad",
+        "justicia",
+        "regulacion",
+        "unece",
+        "iso",
+        "moral"
+      ],
+      "contextoResumen": "Decidir quién cruza primero es también una decisión ética y legal. IntersectIA la hace visible con métricas de equidad y reglas como el límite de inanición.",
+      "contextoGuia": "En un cruce gestionado por un árbitro central, decidir quién pasa primero es también una decisión ética y legal: se puede optimizar el promedio postergando a una minoría, o garantizar equidad. También queda abierta la pregunta de quién responde si dos autónomos colisionan. IntersectIA no resuelve estos dilemas, pero los hace visibles al exponer la equidad como métrica y al incluir reglas como el límite de inanición. Los marcos regulatorios internacionales (UNECE, ISO) todavía debaten la responsabilidad según el nivel SAE.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Quién es responsable si dos vehículos autónomos chocan?",
+          "respuesta": "Es un debate abierto; depende del nivel SAE y de los marcos regulatorios. IntersectIA no lo resuelve, pero lo deja visible como problema."
+        },
+        {
+          "pregunta": "¿Cómo trata IntersectIA la equidad?",
+          "respuesta": "Midiendo la brecha de espera entre direcciones (fairnessGapSeconds) y evitando la inanición con un límite de espera de 25 segundos."
+        }
+      ]
+    },
+    {
+      "slug": "fundamento-teorico",
+      "titulo": "Fundamento teórico y referencias",
+      "categoria": "generales",
+      "keywords": [
+        "fundamento",
+        "referencias",
+        "bibliografia",
+        "fuentes",
+        "teoria",
+        "paper",
+        "papers",
+        "citas",
+        "academico",
+        "varaiya",
+        "j3016",
+        "j2735"
+      ],
+      "contextoResumen": "IntersectIA se apoya en AIM (Dresner y Stone, 2008), V2X (SAE J2735, C-V2X, DSRC), niveles SAE J3016 y control/RL (max-pressure de Varaiya, 2013).",
+      "contextoGuia": "El fundamento teórico de IntersectIA: 1) AIM, gestión autónoma de intersecciones por reservas, de Dresner y Stone (JAIR 31:591-656, 2008). 2) Comunicación V2X: SAE J2735 (BSM), C-V2X de 3GPP (Release 14, PC5 sidelink) y DSRC IEEE 802.11p/802.11bd. 3) Niveles de autonomía: SAE J3016 (ISO PAS 22736). 4) Control y aprendizaje por refuerzo: max-pressure de Varaiya (2013) y surveys de RL para control de señales. La respuesta corta: paradigma AIM, comunicado por V2X y resuelto con una política de RL liviana.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿En qué teoría se basa el proyecto?",
+          "respuesta": "En AIM de Dresner y Stone (2008), la comunicación V2X (SAE J2735, C-V2X/DSRC), los niveles SAE J3016 y el control por RL (referencia max-pressure de Varaiya)."
+        },
+        {
+          "pregunta": "¿Qué papers o fuentes puedo citar?",
+          "respuesta": "Dresner y Stone (2008) JAIR 31:591-656; SAE J2735 y SAE J3016; 3GPP C-V2X Release 14; Varaiya (2013) max-pressure."
+        }
+      ]
+    },
+    {
+      "slug": "giros",
+      "titulo": "Giros (opcional)",
+      "categoria": "proyecto",
+      "keywords": [
+        "giros",
+        "giro",
+        "turn",
+        "turns",
+        "setturns",
+        "bezier",
+        "curva",
+        "izquierda",
+        "movementconflicts",
+        "movimiento"
+      ],
+      "contextoResumen": "Los giros son opcionales (desactivados por defecto) y se activan con setTurns. Cada vehículo sigue una curva Bézier y los conflictos se resuelven por movimiento.",
+      "contextoGuia": "Los giros están desactivados por defecto y se activan con setTurns desde la UI, igual que las colisiones. Cada vehículo elige un movimiento (60% recto, 20% derecha, 20% izquierda) y sigue una curva Bézier cuadrática dentro de la intersección, desde su carril de entrada al de salida. Los conflictos se resuelven por movimiento (movementConflicts): dos rectos por carriles paralelos son compatibles, pero cualquier giro conflictúa; en ejes opuestos recto+recto y recto+derecha no conflictúan (solo la izquierda cruza al de enfrente); los perpendiculares siempre conflictúan.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿La demo tiene giros?",
+          "respuesta": "Sí, son opcionales. Están desactivados por defecto y se activan con setTurns; cada vehículo elige recto, derecha o izquierda con una curva Bézier."
+        },
+        {
+          "pregunta": "¿Cómo se resuelven los conflictos de giro?",
+          "respuesta": "Por movimiento (movementConflicts): los giros conflictúan con casi todo, salvo combinaciones compatibles como recto+recto en ejes opuestos."
+        }
+      ]
+    },
+    {
+      "slug": "colisiones",
+      "titulo": "Colisiones",
+      "categoria": "proyecto",
+      "keywords": [
+        "colision",
+        "colisiones",
+        "collisions",
+        "setcollisions",
+        "crashed",
+        "choque",
+        "accidente",
+        "solapamiento"
+      ],
+      "contextoResumen": "Las colisiones son opcionales (desactivadas por defecto) y se activan con setCollisions. Al detectarse, el vehículo pasa al estado crashed.",
+      "contextoGuia": "Las colisiones son opcionales y se activan con setCollisions desde el panel de la demo. Cuando están activas, el backend detecta solapamientos entre vehículos y marca el estado crashed: el vehículo deja de moverse con normalidad y se refleja en la escena. Con las colisiones desactivadas (por defecto), los vehículos se coordinan sin tocarse. Las banderas frozen y crashed viajan en el snapshot state.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Cómo activo las colisiones?",
+          "respuesta": "Con el evento setCollisions desde el panel de la demo. Están desactivadas por defecto."
+        },
+        {
+          "pregunta": "¿Qué pasa cuando dos vehículos chocan?",
+          "respuesta": "El vehículo pasa al estado crashed y deja de moverse con normalidad; se refleja en la escena."
+        }
+      ]
+    },
+    {
+      "slug": "carriles-spillback",
+      "titulo": "Carriles, cambios de carril y spillback",
+      "categoria": "proyecto",
+      "keywords": [
+        "carril",
+        "carriles",
+        "lane",
+        "cambio de carril",
+        "spillback",
+        "bloquear",
+        "caja",
+        "exitblockedby",
+        "occupanthascleared",
+        "balanceo"
+      ],
+      "contextoResumen": "Cada sentido tiene dos carriles. El backend evita bloquear la intersección (spillback) y libera el ocupante apenas cruza el centro, reduciendo la espera.",
+      "contextoGuia": "Cada sentido tiene dos carriles: exterior (marcha normal) e interior (sobrepaso). Si el carril propio está detenido, el vehículo inicia el cambio antes usando el carril vecino libre, y al cambiar elige el carril con menos vehículos por delante (balanceo). Spillback es que un vehículo quede atravesado y bloquee la intersección: el backend lo evita no concediendo el cruce si hay un vehículo detenido en el tramo de salida (exitBlockedBy). Además, el ocupante se libera apenas cruza el centro más un margen (occupantHasCleared), no cuando desaparece, reduciendo la espera innecesaria.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Cuántos carriles hay por sentido?",
+          "respuesta": "Dos: el exterior para marcha normal y el interior para sobrepaso. El vehículo cambia de carril si el suyo está detenido."
+        },
+        {
+          "pregunta": "¿Qué es el spillback y cómo se evita?",
+          "respuesta": "Que un vehículo quede bloqueando la intersección. Se evita no concediendo el cruce si la salida está bloqueada (exitBlockedBy); espera en la línea de parada."
+        }
+      ]
+    },
+    {
+      "slug": "reaccion-jugador",
+      "titulo": "Reacción al jugador y anti-inanición",
+      "categoria": "proyecto",
+      "keywords": [
+        "jugador",
+        "reaccion",
+        "inanicion",
+        "starvation",
+        "bloqueo",
+        "ceder",
+        "esquivar",
+        "conflicto"
+      ],
+      "contextoResumen": "El jugador no congela toda la intersección: solo ceden las direcciones en conflicto. Si espera más de 25 s, un vehículo se prioriza (anti-inanición).",
+      "contextoGuia": "Cuando el vehículo del jugador está dentro de la intersección, no se congela todo: solo ceden las direcciones que conflictúan con él; las opuestas o sin conflicto siguen cruzando, y los autónomos lo esquivan por el carril libre. Para que un jugador detenido no bloquee una dirección para siempre, un vehículo que espera más de STARVATION_LIMIT_SECONDS (25 segundos) se prioriza y puede cruzar aunque el jugador bloquee su eje.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿El jugador bloquea toda la intersección?",
+          "respuesta": "No. Solo ceden las direcciones en conflicto con él; las demás siguen cruzando y los autónomos lo esquivan."
+        },
+        {
+          "pregunta": "¿Qué pasa si el jugador se queda detenido en medio?",
+          "respuesta": "Si un vehículo espera más de 25 segundos, se prioriza y cruza igual (anti-inanición)."
+        }
+      ]
+    },
+    {
+      "slug": "app-movil",
+      "titulo": "App móvil (Expo)",
+      "categoria": "proyecto",
+      "keywords": [
+        "app",
+        "movil",
+        "celular",
+        "expo",
+        "react native",
+        "android",
+        "ios",
+        "mobile",
+        "telefono"
+      ],
+      "contextoResumen": "Hay una app móvil en Expo (SDK 57, Expo Router) que replica la landing y ofrece el chatbot. Consume el mismo backend, sin simulación ni WebSocket.",
+      "contextoGuia": "Además de la web, IntersectIA tiene una app móvil en Expo (SDK 57, Expo Router) en el repo intersectia-mobile. Es una app fina: no hace simulación ni WebSocket; replica la landing y ofrece el chatbot. Consume el mismo backend NestJS con POST /ai/chat y GET /ai/chat/topics (para el bottom sheet de temas). En el emulador de Android la URL por defecto es http://10.0.2.2:3000.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Hay app móvil?",
+          "respuesta": "Sí, una app en Expo (SDK 57) que replica la landing y tiene el chatbot. Consume el mismo backend; no incluye la simulación ni WebSocket."
+        },
+        {
+          "pregunta": "¿La app móvil usa la simulación 3D?",
+          "respuesta": "No. Solo la landing y el chatbot; la simulación 3D vive en la web con Three.js."
+        }
+      ]
+    },
+    {
+      "slug": "despliegue",
+      "titulo": "Despliegue y costos",
+      "categoria": "proyecto",
+      "keywords": [
+        "despliegue",
+        "deploy",
+        "costo",
+        "costos",
+        "barato",
+        "lightsail",
+        "fargate",
+        "ecs",
+        "cloudformation",
+        "terraform",
+        "docker"
+      ],
+      "contextoResumen": "Hay tres caminos de despliegue: VM única con Docker (el más barato), CloudFormation (EC2+RDS+CloudFront) y Terraform (S3+CloudFront + ECS Fargate + RDS). El chat usa Bedrock; la decisión no cuesta extra.",
+      "contextoGuia": "IntersectIA se despliega con Docker y AWS, priorizando el costo bajo. Opción A: una sola VM (EC2 t3.small o Lightsail) corre todo con docker compose, Postgres incluido, un solo puerto público y mismo origen. Opción A+: lo mismo con CloudFormation, más RDS gestionado, CloudFront (HTTPS sin dominio) e IAM con Bedrock. Opción B: frontend estático en S3+CloudFront y backend+IA en dos contenedores de la misma task de ECS Fargate (la IA por localhost:8000), detrás de un ALB, con RDS en subred privada. La decisión (/decision) es una política en memoria: sin costo extra y nunca en Lambda. El chat usa Bedrock solo cuando genera; sin credenciales degrada offline.",
+      "preguntasRespuestas": [
+        {
+          "pregunta": "¿Cuál es el despliegue más barato?",
+          "respuesta": "La Opción A: una sola VM (EC2 t3.small o Lightsail) con docker compose, que corre frontend, backend, IA y Postgres, con un único puerto público."
+        },
+        {
+          "pregunta": "¿La IA de decisión va en Lambda?",
+          "respuesta": "No. Lambda no encaja por las conexiones WebSocket persistentes ni el estado en memoria. La decisión corre junto al backend y no tiene costo extra."
+        },
+        {
+          "pregunta": "¿Se puede desplegar en AWS de forma reproducible?",
+          "respuesta": "Sí: con CloudFormation (Opción A+) o con Terraform (Opción B, S3+CloudFront y ECS Fargate). No se mezclan."
         }
       ]
     }

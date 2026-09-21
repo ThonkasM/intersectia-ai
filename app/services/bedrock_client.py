@@ -12,10 +12,23 @@ BEDROCK_CONFIG = Config(
     retries={"max_attempts": 1},
 )
 
-SYSTEM_PROMPT_FORMAT = (
-    "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n"
+CHAT_PROMPT_FORMAT = (
+    "<|begin_of_text|>"
+    "<|start_header_id|>system<|end_header_id|>\n"
+    "{system}\n"
+    "<|eot_id|>"
+    "<|start_header_id|>user<|end_header_id|>\n"
     "{prompt}\n"
-    "<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n"
+    "<|eot_id|>"
+    "<|start_header_id|>assistant<|end_header_id|>\n"
+)
+
+DEFAULT_SYSTEM_PROMPT = (
+    "Eres el Asistente de IntersectIA, un proyecto educativo sobre IoT y vehículos "
+    "autónomos. Respondes SIEMPRE en español, de forma clara y concisa. Nunca respondas "
+    "en otro idioma aunque los datos de contexto estén en inglés. Los identificadores "
+    "técnicos (approach, queued, crossing, success, gone, frozen, crashed) se citan tal "
+    "cual, pero toda la explicación va en español."
 )
 
 
@@ -30,13 +43,21 @@ class BedrockClient:
             "bedrock-runtime", region_name=region, config=BEDROCK_CONFIG
         )
 
-    def invoke(self, prompt: str, max_gen_len: int = 512) -> str:
-        formatted_prompt = SYSTEM_PROMPT_FORMAT.format(prompt=prompt)
+    def invoke(
+        self,
+        prompt: str,
+        system: str | None = None,
+        max_gen_len: int = 512,
+    ) -> str:
+        formatted_prompt = CHAT_PROMPT_FORMAT.format(
+            system=system or DEFAULT_SYSTEM_PROMPT,
+            prompt=prompt,
+        )
         body = json.dumps(
             {
                 "prompt": formatted_prompt,
                 "max_gen_len": max_gen_len,
-                "temperature": 0.3,
+                "temperature": 0.2,
                 "top_p": 0.9,
             }
         )

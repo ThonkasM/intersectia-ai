@@ -48,6 +48,16 @@ NO_TOPIC_RESPONSE = (
     "pregunta sobre IoT, vehículos autónomos, la demo 3D o la IA de decisión."
 )
 
+CHAT_SYSTEM_PROMPT = (
+    "Eres el Asistente de IntersectIA, un proyecto educativo sobre IoT, vehículos "
+    "autónomos y gestión autónoma de intersecciones. Responde ÚNICAMENTE con la "
+    "información del contexto proporcionado y SIEMPRE en español, de forma clara y "
+    "concisa. Nunca respondas en otro idioma aunque el contexto contenga términos en "
+    "inglés (approach, queued, crossing, success, gone, frozen, crashed): puedes citar "
+    'esos identificadores tal cual, pero toda la explicación va en español. Devuelve '
+    'tu respuesta en formato JSON exactamente así: {"respuesta": "texto de la respuesta"}.'
+)
+
 
 def _strip_accents(text: str) -> str:
     return COMBINING_MARKS.sub("", unicodedata.normalize("NFD", text))
@@ -142,18 +152,15 @@ class ChatService:
         previous_ctx = self.conversation_context.get(session_id)
         if previous_ctx and time.time() * 1000 - previous_ctx["timestamp"] < self.CONTEXT_TTL_MS:
             follow_up_prompt = (
-                f'Eres un asistente de IntersectIA, un proyecto educativo sobre IoT y '
-                f'vehículos autónomos. El usuario acaba de preguntar sobre '
-                f'"{previous_ctx["slug"]}" y ahora hace una pregunta de seguimiento. '
-                f"Responde ÚNICAMENTE basándote en el contexto proporcionado.\n"
-                f"Tu respuesta debe ser en español, clara y concisa.\n"
-                f'Devuelve tu respuesta en formato JSON exactamente así: '
-                f'{{"respuesta": "texto de la respuesta"}}\n\n'
+                f'El usuario acaba de preguntar sobre "{previous_ctx["slug"]}" y ahora '
+                f"hace una pregunta de seguimiento.\n\n"
                 f"Contexto:\n{previous_ctx['contextoGuia']}\n\n"
                 f"Pregunta del usuario: {message}"
             )
             try:
-                generation = self.bedrock.invoke(follow_up_prompt)
+                generation = self.bedrock.invoke(
+                    follow_up_prompt, system=CHAT_SYSTEM_PROMPT
+                )
                 return self._parse_generation(generation)
             except BedrockUnavailableError:
                 logger.warning(
@@ -172,17 +179,11 @@ class ChatService:
     def _answer_from_retrieval(self, session_id: str, chunks: list[Chunk], message: str) -> str:
         self.conversation_context.pop(session_id, None)
         context = "\n\n".join(chunk.text for chunk in chunks)
-        prompt = (
-            "Eres un asistente de IntersectIA, un proyecto educativo sobre IoT, vehículos "
-            "autónomos y gestión autónoma de intersecciones. Responde la pregunta del usuario "
-            "basándote ÚNICAMENTE en el contexto proporcionado.\n"
-            "Tu respuesta debe ser en español, clara y concisa.\n"
-            'Devuelve tu respuesta en formato JSON exactamente así: {"respuesta": "texto de la respuesta"}\n\n'
-            f"Contexto:\n{context}\n\n"
-            f"Pregunta del usuario: {message}"
-        )
+        prompt = f"Contexto:\n{context}\n\nPregunta del usuario: {message}"
         try:
-            return self._parse_generation(self.bedrock.invoke(prompt))
+            return self._parse_generation(
+                self.bedrock.invoke(prompt, system=CHAT_SYSTEM_PROMPT)
+            )
         except BedrockUnavailableError:
             return chunks[0].text
 
@@ -194,17 +195,9 @@ class ChatService:
             context += "\n\nInformación adicional:\n" + "\n\n".join(
                 chunk.text for chunk in retrieved
             )
-        prompt = (
-            "Eres un asistente de IntersectIA, un proyecto educativo sobre IoT y vehículos "
-            "autónomos. Responde la pregunta del usuario basándote ÚNICAMENTE en el contexto "
-            "proporcionado.\n"
-            "Tu respuesta debe ser en español, clara y concisa.\n"
-            'Devuelve tu respuesta en formato JSON exactamente así: {"respuesta": "texto de la respuesta"}\n\n'
-            f"Contexto:\n{context}\n\n"
-            f"Pregunta del usuario: {message}"
-        )
+        prompt = f"Contexto:\n{context}\n\nPregunta del usuario: {message}"
         try:
-            generation = self.bedrock.invoke(prompt)
+            generation = self.bedrock.invoke(prompt, system=CHAT_SYSTEM_PROMPT)
             return self._parse_generation(generation)
         except BedrockUnavailableError:
             logger.warning(

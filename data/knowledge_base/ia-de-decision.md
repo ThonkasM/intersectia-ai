@@ -1,6 +1,6 @@
 # La IA de decisión
 
-El servicio de IA expone `POST /decision`, que el backend llama una vez por tick en el modo `managed-ai`. El presupuesto de latencia es de 150 ms y **nunca usa un LLM**: ejecuta una política en memoria.
+El servicio de IA expone `POST /decision`, que el backend consulta en el modo `managed-ai`. El presupuesto de latencia es de 150 ms y **nunca usa un LLM**: ejecuta una política en memoria. La decisión solo puede cambiar cuando cambia la cola o el ocupante, así que `SessionSimulation` la **cachea por firma de la cola** y solo vuelve a consultar cuando esa firma cambia: baja de ~20 llamadas por segundo (una por tick) a ~1 por segundo.
 
 ## Política
 

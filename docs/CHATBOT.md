@@ -14,8 +14,8 @@ Sin credenciales de AWS, degrada a `contextoResumen` (responde offline).
 
 ## Base de conocimiento
 
-- `data/topics.json` — 14 temas con keywords, `contextoResumen`, `contextoGuia` y pares Q&A. Cubre IoT, vehículos autónomos, V2V/V2I, la demo, modos, la IA, el stack, controles, métricas, sesiones, estados, handover y problemas frecuentes.
-- `data/knowledge_base/*.md` — documentos en lenguaje natural de la app. El retriever los indexa por fragmentos.
+- `data/topics.json` — 31 temas con keywords, `contextoResumen`, `contextoGuia` y pares Q&A. Cubre **teoría** (AIM, intersecciones sin semáforo, taxonomía V2X y C-V2X/DSRC, SAE J3016, aprendizaje por refuerzo, equidad e inanición, tráfico mixto, edge/MEC y latencia, gemelo digital, ética y responsabilidad, fundamento teórico y referencias) y **proyecto** (IoT, vehículos autónomos, V2V/V2I, la demo, modos y motores de decisión, la IA, el stack, controles, métricas —incluido `/metrics/node`—, sesiones, estados, handover, giros, colisiones, carriles y spillback, reacción al jugador, app móvil, despliegue y problemas frecuentes).
+- `data/knowledge_base/*.md` — documentos en lenguaje natural de la app y de la teoría. El retriever los indexa por fragmentos.
 
 ## Retriever
 

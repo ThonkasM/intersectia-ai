@@ -14,6 +14,7 @@
 
 - `GET /metrics/avg?mode=managed` devuelve `{ avgWaitSeconds, total }` para un modo.
 - `GET /metrics/summary` devuelve `{ totalCrossings, totalViolations, avgWaitByMode }`.
+- `GET /metrics/node?window=<seg>` calcula, sobre los cruces de una ventana (60 s por defecto, máx. 3600), el **throughput por minuto**, la espera promedio, el **p95** y la **equidad** por dirección (`fairnessGapSeconds`, la brecha entre la mejor y la peor dirección), además del desglose `byDirection`. Sirve para evaluar el desempeño del nodo, no solo el total histórico.
 
 La espera promedio se calcula sobre los cruces registrados en la base de datos PostgreSQL.
 
