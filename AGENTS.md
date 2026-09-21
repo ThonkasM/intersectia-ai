@@ -11,10 +11,13 @@ relaxed.
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime + test (para desarrollo)
 uvicorn app.main:app --reload --port 8000
-pip freeze > requirements.txt
+pytest
 ```
+
+`requirements.txt` es **solo runtime** (lo que instala la imagen Docker); `requirements-dev.txt`
+agrega `pytest`/`httpx`. No agregues deps de test al runtime.
 
 ## Architectural conventions
 
