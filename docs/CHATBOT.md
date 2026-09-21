@@ -10,7 +10,7 @@
 4. **Retriever** sobre `data/knowledge_base/` → si hay fragmentos relevantes, responde con ellos.
 5. Si nada aplica → mensaje de fallback.
 
-Sin credenciales de AWS, degrada a `contextoResumen` (responde offline).
+Sin credenciales de AWS, degrada al `contextoGuia` del tema (responde offline, sin LLM).
 
 ## Base de conocimiento
 

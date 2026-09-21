@@ -102,6 +102,7 @@ class ChatService:
         self.conversation_context[session_id] = {
             "slug": topic["slug"],
             "contextoGuia": topic.get("contextoGuia", ""),
+            "contextoResumen": topic.get("contextoResumen", ""),
             "timestamp": now,
         }
         if len(self.conversation_context) > self.MAX_SESSIONS:
@@ -164,10 +165,12 @@ class ChatService:
                 return self._parse_generation(generation)
             except BedrockUnavailableError:
                 logger.warning(
-                    "Bedrock no disponible para seguimiento del tema %s; usando contextoResumen",
+                    "Bedrock no disponible para seguimiento del tema %s; usando contexto offline",
                     previous_ctx["slug"],
                 )
-                return self._contexto_resumen(previous_ctx["slug"])
+                return previous_ctx.get("contextoGuia") or self._contexto_resumen(
+                    previous_ctx["slug"]
+                )
 
         retrieved = self.retriever.search(message, top_k=3)
         if retrieved:
@@ -201,10 +204,17 @@ class ChatService:
             return self._parse_generation(generation)
         except BedrockUnavailableError:
             logger.warning(
-                "Bedrock no disponible para el tema %s; degradando a contextoResumen",
+                "Bedrock no disponible para el tema %s; degradando al contexto offline",
                 topic["slug"],
             )
-            return topic.get("contextoResumen", NO_TOPIC_RESPONSE)
+            return self._offline_answer(topic)
+
+    def _offline_answer(self, topic: dict) -> str:
+        return (
+            topic.get("contextoGuia")
+            or topic.get("contextoResumen")
+            or NO_TOPIC_RESPONSE
+        )
 
     def _parse_generation(self, generation: str) -> str:
         parsed = None

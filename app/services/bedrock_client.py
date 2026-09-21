@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 BEDROCK_CONFIG = Config(
     connect_timeout=2,
-    read_timeout=10,
+    read_timeout=25,
     retries={"max_attempts": 1},
 )
 

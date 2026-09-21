@@ -56,7 +56,16 @@ def test_keyword_match_degrades_offline():
     fake = FakeBedrock("", fail=True)
     service = make_service(fake)
     answer = service.ask("¿Qué es una intersección gestionada?")
-    assert answer.startswith("El modo tradicional sigue la prioridad a la derecha")
+    assert answer.startswith("La demo permite comparar dos modos")
+    assert fake.calls == 1
+
+
+def test_follow_up_degrades_offline_to_guia():
+    fake = FakeBedrock("", fail=True)
+    service = make_service(fake)
+    service.ask("¿Qué es IoT?", "s1")
+    answer = service.ask("Contame mas", "s1")
+    assert answer.startswith("IoT, o Internet de las Cosas, conecta")
     assert fake.calls == 1
 
 
