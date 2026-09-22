@@ -18,8 +18,15 @@ GREETING_PATTERNS = [
     r"\bbuen(os)?\s*(dia|dias|tardes|noches|noche)\b",
     r"\bbuenas\b",
     r"\b(quien|que)\s*(eres|haces|sos)\b",
-    r"\b(gracias|thank\s*(you|s)?|thx)\b",
-    r"\b(ayuda|help|ayudame|ayudame|auxilio)\b",
+    r"\b(ayuda|help|ayudame|auxilio)\b",
+]
+
+THANKS_PATTERNS = [
+    r"\b(gracias|muchas gracias|mil gracias|te lo agradezco|thank\s*(you|s)?|thx)\b",
+]
+
+FAREWELL_PATTERNS = [
+    r"\b(adios|chau|chao|bye|goodbye|hasta luego|hasta pronto|hasta la vista|nos vemos|me voy|me despido)\b",
 ]
 
 FEELING_PATTERNS = [
@@ -43,6 +50,16 @@ FEELING_RESPONSE = (
     "intersecciones. ¿Sobre qué tema te gustaría consultar hoy?"
 )
 
+THANKS_RESPONSE = (
+    "¡De nada! Si te surge otra duda sobre IoT, vehículos autónomos o la demo, "
+    "aquí estoy para ayudarte."
+)
+
+FAREWELL_RESPONSE = (
+    "¡Hasta luego! Gracias por visitar IntersectIA. Si volvés con más preguntas sobre "
+    "IoT, vehículos autónomos o la demo, el asistente queda a tu disposición."
+)
+
 NO_TOPIC_RESPONSE = (
     "Lo siento, no tengo información sobre ese tema. Intenta reformular tu pregunta o "
     "pregunta sobre IoT, vehículos autónomos, la demo 3D o la IA de decisión."
@@ -54,7 +71,10 @@ CHAT_SYSTEM_PROMPT = (
     "información del contexto proporcionado y SIEMPRE en español, de forma clara y "
     "concisa. Nunca respondas en otro idioma aunque el contexto contenga términos en "
     "inglés (approach, queued, crossing, success, gone, frozen, crashed): puedes citar "
-    'esos identificadores tal cual, pero toda la explicación va en español. Devuelve '
+    "esos identificadores tal cual, pero toda la explicación va en español. "
+    "Formato: podés usar Markdown mínimo dentro del texto de la respuesta: **negrita**, "
+    "*cursiva* y listas con guiones (- ). Para identificadores o código usá backticks "
+    "(`asi`). No uses encabezados (#), tablas, imágenes ni listas anidadas. Devuelve "
     'tu respuesta en formato JSON exactamente así: {"respuesta": "texto de la respuesta"}.'
 )
 
@@ -124,6 +144,15 @@ class ChatService:
             topic, respuesta = exact
             self._remember(session_id, topic)
             return respuesta
+
+        for pattern in FAREWELL_PATTERNS:
+            if re.search(pattern, normalized_question):
+                self.conversation_context.pop(session_id, None)
+                return FAREWELL_RESPONSE
+
+        for pattern in THANKS_PATTERNS:
+            if re.search(pattern, normalized_question):
+                return THANKS_RESPONSE
 
         for pattern in GREETING_PATTERNS:
             if re.search(pattern, normalized_question):

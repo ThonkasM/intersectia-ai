@@ -5,7 +5,7 @@
 ## Flujo de respuesta
 
 1. **Match exacto** de pregunta en `data/topics.json` (normalizado, sin acentos) → respuesta directa, sin LLM.
-2. **Saludos y sentimientos** → respuesta fija, sin LLM.
+2. **Saludos, agradecimientos y despedidas** → respuesta fija, sin LLM.
 3. **Match por keywords** de un tema → respuesta con el `contextoGuia` del tema (más fragmentos recuperados) mediante el LLM.
 4. **Retriever** sobre `data/knowledge_base/` → si hay fragmentos relevantes, responde con ellos.
 5. Si nada aplica → mensaje de fallback.

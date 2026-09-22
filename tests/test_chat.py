@@ -44,6 +44,22 @@ def test_greeting_no_llm():
     assert fake.calls == 0
 
 
+def test_thanks_no_llm():
+    fake = FakeBedrock('{"respuesta": "no deberia llamarse"}')
+    service = make_service(fake)
+    answer = service.ask("muchas gracias")
+    assert "De nada" in answer
+    assert fake.calls == 0
+
+
+def test_farewell_no_llm():
+    fake = FakeBedrock('{"respuesta": "no deberia llamarse"}')
+    service = make_service(fake)
+    answer = service.ask("chau, hasta luego")
+    assert "Hasta luego" in answer
+    assert fake.calls == 0
+
+
 def test_keyword_match_calls_bedrock_and_parses():
     fake = FakeBedrock('{"respuesta": "respuesta del llm"}')
     service = make_service(fake)
